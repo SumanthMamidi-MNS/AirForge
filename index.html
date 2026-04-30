@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AirForge Studio</title>
+    <style>
+      /* ─── Reset ──────────────────────────── */
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      /* ─── Body ───────────────────────────── */
+      body {
+        background: #0a0a0a;
+        overflow: hidden;
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        height: 100vh;
+        width: 100vw;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* ─── Webcam Container ───────────────── */
+      #webcam-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      #webcam-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scaleX(-1);
+      }
+
+      #skeleton-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      /* ─── FPS Counter ────────────────────── */
+      #fps-counter {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 8px 14px;
+        color: #00ffff;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        z-index: 100;
+        font-family: "Courier New", monospace;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      /* ─── Status Bar ─────────────────────── */
+      #status-bar {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 24px;
+        padding: 10px 24px;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        z-index: 100;
+        transition: all 0.3s ease;
+        text-align: center;
+        user-select: none;
+        -webkit-user-select: none;
+        white-space: nowrap;
+      }
+
+      #status-bar.hand-lost {
+        border-color: rgba(255, 100, 100, 0.6);
+        color: #ff6464;
+        animation: pulse-warning 1.5s infinite;
+      }
+
+      #status-bar.hand-detected {
+        border-color: rgba(0, 255, 200, 0.6);
+        color: #00ffc8;
+      }
+
+      @keyframes pulse-warning {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* ─── Loading Overlay ────────────────── */
+      #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #0a0a0a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+        transition: opacity 0.5s ease;
+      }
+
+      #loading-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 3px solid rgba(255, 255, 255, 0.15);
+        border-top-color: #00ffff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-bottom: 20px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      #loading-text {
+        color: #ffffff;
+        font-size: 16px;
+        letter-spacing: 1px;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      /* ─── Sidebar (Glassmorphism) ─────────── */
+      #sidebar {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        width: 240px;
+        max-height: calc(100vh - 32px);
+        background: rgba(15, 15, 25, 0.75);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 255, 136, 0.25);
+        border-radius: 16px;
+        padding: 0;
+        z-index: 50;
+        overflow-y: auto;
+        color: #e0e0e0;
+        font-size: 13px;
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.5),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        /* Flex column so branding sticks to bottom */
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Scrollbar - WebKit */
+      #sidebar::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      #sidebar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      #sidebar::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 136, 0.3);
+        border-radius: 2px;
+      }
+
+      /* Scrollbar - Firefox */
+      #sidebar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 255, 136, 0.3) transparent;
+      }
+
+      #sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+      }
+
+      #sidebar-title {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        background: linear-gradient(135deg, #00ff88, #00d4ff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      #sidebar-content {
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .sidebar-section {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .section-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: rgba(255, 255, 255, 0.5);
+        font-weight: 600;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      /* ─── Color Palette ──────────────────── */
+      .color-palette {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .color-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 0 12px currentColor;
+        outline: none;
+      }
+
+      .color-btn:hover {
+        transform: scale(1.15);
+        border-color: white;
+      }
+
+      .color-btn:focus-visible {
+        outline: 2px solid #00ff88;
+        outline-offset: 2px;
+      }
+
+      .color-btn.active {
+        border-color: white;
+        box-shadow:
+          0 0 20px currentColor,
+          0 0 40px currentColor;
+      }
+
+      /* ─── Brush Slider ───────────────────── */
+      #brush-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.15);
+        outline: none;
+        cursor: pointer;
+      }
+
+      #brush-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #00ff88;
+        cursor: pointer;
+        box-shadow: 0 0 12px #00ff88;
+        border: none;
+      }
+
+      #brush-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #00ff88;
+        cursor: pointer;
+        box-shadow: 0 0 12px #00ff88;
+        border: none;
+      }
+
+      #brush-slider::-moz-range-track {
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+      }
+
+      #brush-slider:focus-visible {
+        outline: 2px solid #00ff88;
+        outline-offset: 4px;
+      }
+
+      /* ─── Buttons ────────────────────────── */
+      .sidebar-btn {
+        width: 100%;
+        min-height: 38px;
+        padding: 9px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #ddd;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        text-align: left;
+        transition: all 0.2s ease;
+        letter-spacing: 0.4px;
+        user-select: none;
+        -webkit-user-select: none;
+        font-family: inherit;
+      }
+
+      .sidebar-btn:hover {
+        background: rgba(0, 255, 136, 0.12);
+        border-color: rgba(0, 255, 136, 0.42);
+        color: #fff;
+        box-shadow: 0 0 10px rgba(0, 255, 136, 0.15);
+      }
+
+      .sidebar-btn:active {
+        transform: scale(0.97);
+      }
+
+      .sidebar-btn:focus-visible {
+        outline: 2px solid #00ff88;
+        outline-offset: 2px;
+      }
+
+      /* ─── Shape / BG Button Grid ─────────── */
+      .shape-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+
+      .shape-btn,
+      .bg-btn {
+        padding: 8px 6px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.65);
+        cursor: pointer;
+        font-size: 12px;
+        font-family: inherit;
+        transition: all 0.18s ease;
+        text-align: center;
+      }
+
+      .shape-btn:hover,
+      .bg-btn:hover {
+        background: rgba(0, 255, 136, 0.12);
+        border-color: rgba(0, 255, 136, 0.35);
+        color: #fff;
+      }
+
+      .shape-btn.active,
+      .bg-btn.active {
+        background: rgba(0, 255, 136, 0.18);
+        border-color: rgba(0, 255, 136, 0.5);
+        color: #00ff88;
+        font-weight: 600;
+      }
+
+      /* ─── Mode Switch Button ─────────────── */
+      .mode-switch-btn {
+        width: 100%;
+        margin-top: 10px;
+        padding: 11px;
+        border: 1px solid rgba(0, 212, 255, 0.4);
+        border-radius: 10px;
+        background: rgba(0, 212, 255, 0.08);
+        color: #00d4ff;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        transition: all 0.25s ease;
+        font-family: inherit;
+      }
+
+      .mode-switch-btn:hover {
+        background: rgba(0, 212, 255, 0.18);
+        border-color: rgba(0, 212, 255, 0.65);
+        color: #fff;
+        box-shadow: 0 0 16px rgba(0, 212, 255, 0.2);
+      }
+
+      /* ─── Gesture Hints (Build) ──────────── */
+      .gesture-hint {
+        font-size: 12px;
+        line-height: 2;
+        color: rgba(255, 255, 255, 0.5);
+        background: rgba(0, 0, 0, 0.25);
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .gesture-hint span {
+        color: #00ff88;
+        font-weight: 600;
+      }
+
+      /* ─── Canvas Layers ──────────────────── */
+      #ink-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 5;
+        pointer-events: none;
+      }
+
+      #glow-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 4;
+        pointer-events: none;
+      }
+
+      /* ─── Help Button ────────────────────── */
+      #help-btn {
+        position: fixed;
+        top: 16px;
+        right: 268px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(15, 15, 25, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        z-index: 55;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        -webkit-user-select: none;
+        font-family: inherit;
+      }
+
+      #help-btn:hover {
+        border-color: #00ff88;
+        color: #00ff88;
+        box-shadow: 0 0 16px rgba(0, 255, 136, 0.3);
+      }
+
+      #help-btn:focus-visible {
+        outline: 2px solid #00ff88;
+        outline-offset: 2px;
+      }
+
+      /* ─── Onboarding Animation ───────────── */
+      @keyframes onboarding-in {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+
+      /* ─── Selection Color ────────────────── */
+      ::selection {
+        background: rgba(0, 255, 136, 0.3);
+        color: #ffffff;
+      }
+
+      ::-moz-selection {
+        background: rgba(0, 255, 136, 0.3);
+        color: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ─── Loading Screen ─────────────────── -->
+    <div id="loading-overlay">
+      <div id="loading-spinner"></div>
+      <div id="loading-text">Initializing Hand Tracking...</div>
+    </div>
+
+    <!-- ─── Webcam + Skeleton ──────────────── -->
+    <div id="webcam-container">
+      <video id="webcam-video" autoplay playsinline></video>
+      <canvas id="skeleton-canvas"></canvas>
+    </div>
+
+    <!-- ─── Ink Space Canvas ───────────────── -->
+    <canvas id="ink-canvas"></canvas>
+
+    <!-- ─── Neon Glow Canvas ───────────────── -->
+    <canvas id="glow-canvas"></canvas>
+
+    <!-- ─── FPS Counter ────────────────────── -->
+    <div id="fps-counter">FPS: --</div>
+
+    <!-- ─── Status Bar ─────────────────────── -->
+    <div id="status-bar" class="hand-lost">🖐️ Waiting for hand...</div>
+
+    <!-- ─── Help Button ────────────────────── -->
+    <button id="help-btn" title="Gesture Guide" aria-label="Open gesture guide">
+      ?
+    </button>
+
+    <!-- ─── Right Sidebar ──────────────────── -->
+    <div id="sidebar">
+      <div id="sidebar-header">
+        <span id="sidebar-title">✍️ Ink Space</span>
+      </div>
+
+      <div id="sidebar-content">
+        <!-- Color Palette -->
+        <div class="sidebar-section">
+          <div class="section-label">Brush Color</div>
+          <div class="color-palette" id="color-palette">
+            <button
+              class="color-btn active"
+              data-color="#00ff88"
+              style="background: #00ff88"
+              title="Neon Green"
+              aria-label="Neon Green"
+            ></button>
+            <button
+              class="color-btn"
+              data-color="#ff6ec7"
+              style="background: #ff6ec7"
+              title="Neon Pink"
+              aria-label="Neon Pink"
+            ></button>
+            <button
+              class="color-btn"
+              data-color="#00d4ff"
+              style="background: #00d4ff"
+              title="Neon Blue"
+              aria-label="Neon Blue"
+            ></button>
+            <button
+              class="color-btn"
+              data-color="#ff8c42"
+              style="background: #ff8c42"
+              title="Neon Orange"
+              aria-label="Neon Orange"
+            ></button>
+            <button
+              class="color-btn"
+              data-color="#da70ff"
+              style="background: #da70ff"
+              title="Neon Magenta"
+              aria-label="Neon Magenta"
+            ></button>
+          </div>
+        </div>
+
+        <!-- Brush Size -->
+        <div class="sidebar-section">
+          <div class="section-label">
+            Brush Size: <span id="brush-size-value">6</span>px
+          </div>
+          <input
+            type="range"
+            id="brush-slider"
+            min="2"
+            max="20"
+            value="6"
+            step="1"
+            aria-label="Brush size"
+          />
+        </div>
+
+        <!-- Actions -->
+        <div class="sidebar-section">
+          <div class="section-label">Actions</div>
+          <button class="sidebar-btn" id="btn-clear">🗑️ Clear All</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <button class="sidebar-btn" id="btn-undo" style="text-align:center;">↩️ Undo</button>
+            <button class="sidebar-btn" id="btn-redo" style="text-align:center;">↪️ Redo</button>
+          </div>
+          <button class="sidebar-btn" id="btn-save">💾 Save as PNG</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── MediaPipe Legacy Hands (CDN) ───── -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.6.1629159505/control_utils.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466124/drawing_utils.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- ─── Our App ────────────────────────── -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
