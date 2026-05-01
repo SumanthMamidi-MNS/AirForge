@@ -104,10 +104,13 @@ class InkCanvas {
 
   moveSelection(normDX, normDY) {
     if (!this.selectedStroke) return;
+    // Strokes are stored in mirrored pixel space: x = (1 - normX) * width.
+    // A positive normDX (hand moving right) means the mirrored pixel X
+    // decreases, so we negate dx to keep movement direction natural.
     strokeManager.moveStroke(
       this.selectedStroke.id,
-      normDX * this.inkCanvas.width,
-      normDY * this.inkCanvas.height
+      -normDX * this.inkCanvas.width, // ← negated: mirrors the X delta
+       normDY * this.inkCanvas.height  // ← unchanged: Y is never mirrored
     );
   }
 
