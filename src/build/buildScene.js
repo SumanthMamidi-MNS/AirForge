@@ -41,7 +41,9 @@ class BuildScene {
       0.1,
       100,
     );
-    this.camera.position.set(8, 6, 10);
+    // Top-down starting view — camera above the scene looking straight down.
+    // Tiny Z offset (0.01) prevents gimbal lock when position is on the Y axis.
+    this.camera.position.set(0, 14, 0.01);
     this.camera.lookAt(0, 0, 0);
 
     this.renderer = new THREE.WebGLRenderer({

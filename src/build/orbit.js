@@ -56,9 +56,13 @@ class TwoHandOrbit {
       .sub(this.target);
     spherical.setFromVector3(offset);
 
-    // Apply rotation
-    spherical.theta -= delta.x * this.rotateSpeed;
-    spherical.phi -= delta.y * this.rotateSpeed;
+    // Apply rotation.
+    // theta: += because the webcam is CSS-mirrored (scaleX(-1)).
+    //   Moving the hand RIGHT on screen → normX decreases → delta.x < 0
+    //   += (negative) decreases theta → camera moves right → scene rotates right ✅
+    // phi: unchanged — Y axis is never mirrored.
+    spherical.theta += delta.x * this.rotateSpeed;
+    spherical.phi   -= delta.y * this.rotateSpeed;
 
     // Clamp phi to avoid flipping
     spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
