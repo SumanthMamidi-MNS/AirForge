@@ -14,7 +14,7 @@
 
 [![Try AirForge](https://img.shields.io/badge/▶_Try_AirForge-Live_Studio-22c55e?style=for-the-badge&logo=vercel&logoColor=white&labelColor=020617)](https://air-forge.vercel.app/)
 
-[Key Highlights](#highlights) • [Interactive Spaces](#spaces) • [Gesture Matrix](#gestures) • [Architecture](#architecture) • [Quickstart](#quickstart) • [Export Pipeline](#export)
+[Key Highlights](#highlights) • [Why AirForge?](#why-airforge) • [Interactive Spaces](#spaces) • [Gesture Matrix](#gestures) • [Architecture](#architecture) • [Quickstart](#quickstart) • [Export Pipeline](#export)
 
 </div>
 
@@ -34,6 +34,18 @@
 >
 > **🛡️ Deterministic Input Guard**  
 > Symmetrical undo/redo stacks & a 600ms debounce guard eliminate phantom inputs and accidental voxel duplication.
+
+---
+
+<a id="why-airforge"></a>
+## 🎯 Why AirForge?
+
+Most spatial computing experiences today require **$500–$3,500 VR headsets** or specialized hardware accessories. AirForge was built on a simple premise: **spatial interaction should be accessible to anyone with a browser and a webcam.**
+
+* 🖐️ **Intuitive Spatial Creation** — Manipulating 3D objects with a 2D mouse is unintuitive. AirForge bridges physical intuition and digital space by turning natural hand gestures into direct creative inputs.
+* ⚡ **Frictionless Onboarding** — No app downloads, no drivers, and zero installation. Open a URL, allow camera access, and start building in under 5 seconds.
+* 🔒 **100% Private by Design** — All MediaPipe vision inference and WebGL rendering execute entirely on-device via WebAssembly. No video streams or frame data ever leave your machine.
+* 🎓 **Real-World Applications** — Built for rapid 3D voxel prototyping, touchless live presentations, interactive education, and sterile/touch-free computing environments.
 
 ---
 
