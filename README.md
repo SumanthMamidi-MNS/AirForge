@@ -1,158 +1,281 @@
-# ✦ Airforge
+<div align="center">
 
-**A gesture-controlled creative workspace — draw in 2D and build in 3D using only your hands.**
+# ✦ AirForge Studio
+### *Next-Gen Spatial Computing & Gesture-Controlled Workspace*
 
-Airforge runs entirely in the browser. No installation, no plugins, no stylus — just a webcam and your hands. Powered by MediaPipe hand tracking, it maps your gestures to drawing and 3D construction in real time.
+**Draw in 2D luminous ink and construct 3D voxel worlds using only your webcam and hands.**
 
----
+[![Three.js](https://img.shields.io/badge/Three.js-r184-06b6d4?style=for-the-badge&logo=three.js&logoColor=white&labelColor=020617)](https://threejs.org/)
+[![HTML5 Canvas](https://img.shields.io/badge/Canvas-2D_Glow-ec4899?style=for-the-badge&logo=html5&logoColor=white&labelColor=020617)](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
+[![MediaPipe](https://img.shields.io/badge/MediaPipe-Hands-a855f7?style=for-the-badge&logo=google&logoColor=white&labelColor=020617)](https://developers.google.com/mediapipe)
+[![JavaScript](https://img.shields.io/badge/Vanilla_JS-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black&labelColor=020617)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![Vite](https://img.shields.io/badge/Vite-8.0-fb923c?style=for-the-badge&logo=vite&logoColor=white&labelColor=020617)](https://vitejs.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-7df9ff?style=for-the-badge&logo=opensourceinitiative&logoColor=black&labelColor=020617)](./LICENSE)
 
-## ✨ Features
+[![Try AirForge](https://img.shields.io/badge/▶_Try_AirForge-Live_Studio-22c55e?style=for-the-badge&logo=vercel&logoColor=white&labelColor=020617)](https://air-forge.vercel.app/)
 
-### ✍️ Ink Space — 2D Gesture Drawing
+[Key Highlights](#highlights) • [Interactive Spaces](#spaces) • [Gesture Matrix](#gestures) • [Architecture](#architecture) • [Quickstart](#quickstart) • [Export Pipeline](#export)
 
-* Draw smooth neon-glow lines using your **index finger**
-* Shape modes: **Free draw, Line, Circle, Rectangle**
-* Background templates: **Blank, Lined, Grid, Dotted**
-* 5 neon colour presets with adjustable brush size
-* **Select and move** strokes using a pinch gesture
-* Full **Undo / Redo** stack
-* Export drawing as **PNG (2× resolution)**
-
----
-
-### 🧊 Build Space — 3D Voxel Construction
-
-* Place glowing 3D blocks by **pinching to preview** and **opening your palm to place**
-* **Orbit camera** using two open palms
-* **Scroll wheel zoom**
-* 9-button **orbit control panel** for quick camera presets
-* Toggle grid on / off
-* Full **Undo / Redo** stack
-* Export scene as **PNG (2× resolution)**
+</div>
 
 ---
 
-### 🤲 Gesture Controls
+<a id="highlights"></a>
+## 🌟 Key Highlights
 
-| Gesture                  | Action                     |
-| ------------------------ | -------------------------- |
-| ☝️ Index finger          | Draw                       |
-| 🤏 Pinch (near stroke)   | Select & move stroke       |
-| 🤏 Hold pinch (1 second) | Select stroke              |
-| ✋ Open palm              | Stop drawing / drop        |
-| 🤲 Two open palms        | Orbit camera (Build Space) |
-| 🖱️ Scroll wheel         | Zoom (Build Space)         |
-
----
-
-### 🎛️ Sidebar UI
-
-* Mouse-controlled sidebar with all tools
-* Undo / Redo controls
-* Colour palette and brush size slider
-* Shape and background controls
-* One-click mode switching (**Ink ↔ Build**)
+> **⚡ Zero-Install Spatial Engine**  
+> Runs natively in modern browsers via WebRTC & WebGL. Zero external sensors, drivers, or software installation required.
+>
+> **🪞 Mirror Parity Calibration**  
+> Mathematical screen-space inversion ($x' = 1 - x$) ensures physical hand motion matches on-screen interaction with zero cognitive delay.
+>
+> **🌌 Neon Glassmorphism Shell**  
+> Deep obsidian `#020617` workspace with contextual state-driven neon glow feedback and an electric cyan-white (`#7df9ff`) precision slider.
+>
+> **🛡️ Deterministic Input Guard**  
+> Symmetrical undo/redo stacks & a 600ms debounce guard eliminate phantom inputs and accidental voxel duplication.
 
 ---
 
-## 🚀 Getting Started
+<a id="spaces"></a>
+## 🔀 Interactive Spaces
+
+### ✍️ Ink Space · *2D Precision Sketching*
+> **Point & Draw** ── Trace smooth neon curves with real-time sub-pixel Bézier interpolation  
+> **Parametric Shapes** ── Seamlessly create straight lines, perfect circles, and 4-corner rectangles  
+> **Pinch-to-Move** ── Hold pinch for 1 second on any stroke to pick up, drag, and reposition it anywhere  
+> **Canvas Guides** ── Switch between Blank, Lined, Grid, and Dotted backgrounds with isolated Undo/Redo history  
+
+### 🧊 Build Space · *3D Spatial Voxel Studio*
+> **Top-Down Start** ── Launches straight into an isometric ground view for immediate spatial orientation  
+> **Raycast & Snap** ── Pinch to project a glowing ghost voxel snapped precisely onto the 1.0-unit ground grid  
+> **Palm Placement** ── Open your hand to commit voxel blocks into the scene with 600ms duplicate protection  
+> **Dual-Palm Orbit** ── Raise two open hands to rotate the 3D scene, or tap presets on the 3×3 ViewCube  
+
+---
+
+<a id="gestures"></a>
+## 🤲 Gesture Interaction Matrix
+
+AirForge uses an intuitive 5-gesture recognition engine designed for zero false triggers:
+
+| Gesture | How to Perform | What It Does |
+| :---: | :--- | :--- |
+| **☝️ Point** | Index extended, middle finger curled | **Draw** neon curves & trace shape guides *(Ink Space)* |
+| **🤏 Pinch** | Thumb & index fingertips touching | **Preview** 3D voxel *(Build)* • **Hold 1s** to grab & move stroke *(Ink)* |
+| **✋ Open Palm** | 4+ fingers spread open | **Commit** voxel • **Release** held stroke • **Stop** drawing |
+| **🤲 Two Palms** | Both hands open in camera view | **Orbit** 3D camera 360° around scene origin *(Build Space)* |
+| **🖱️ Scroll Wheel** | Mouse wheel vertical scroll | **Zoom** in / out smoothly *(Build Space)* |
+
+---
+
+<a id="architecture"></a>
+## 🏗️ System Architecture
+
+The following diagram illustrates the complete, deterministic pipeline from raw camera frames to real-time spatial interaction and high-resolution output:
+
+```mermaid
+flowchart TD
+    subgraph S1 ["1. OPTICAL ACQUISITION"]
+        Cam["📹 Webcam Video Stream<br/>(60 FPS • WebRTC / getUserMedia)"]
+    end
+
+    subgraph S2 ["2. COMPUTER VISION & GEOMETRY"]
+        MP["🤖 MediaPipe Hands ML Model<br/>(21 3D Spatial Keypoints)"]
+        Mirror["🪞 Coordinate Transformation<br/>x' = 1 - normX (Mirror Parity)"]
+        Smooth["📉 Temporal Coordinate Smoothing<br/>Moving Average Window (N=3)"]
+    end
+
+    subgraph S3 ["3. GESTURE RECOGNITION & STATE"]
+        Detector{"🧠 Pose Classifier"}
+        PointPose["☝️ Point<br/>(Index extended)"]
+        PinchPose["🤏 Pinch<br/>(dist &lt; 0.08)"]
+        PalmPose["✋ Open Palm<br/>(4+ fingers open)"]
+        DualPose["🤲 Dual Palms<br/>(Both hands present)"]
+        HoldTimer["⏱️ 1.0s Hold-to-Select Machine"]
+        Debounce["⚡ 600ms Voxel Debounce Guard"]
+    end
+
+    subgraph S4 ["4. WORKSPACE ROUTER"]
+        Router{"Mode Dispatcher"}
+    end
+
+    subgraph S5A ["5A. ✍️ INK SPACE (2D CANVAS)"]
+        InkDraw["Quadratic Bezier Curve Interpolator"]
+        Shapes["Parametric Geometry (Line, Circle, Rect)"]
+        GlowPass["Dual-Layer Neon Glow Renderer<br/>(Sharp Core + Radial Aura)"]
+        InkHistory["Symmetrical Undo / Redo History Stacks"]
+    end
+
+    subgraph S5B ["5B. 🧊 BUILD SPACE (THREE.JS 3D)"]
+        Raycaster["Ground Plane Raycaster (Y = 0)"]
+        GridSnap["Voxel Grid Snapping (UNIT = 1.0)"]
+        GhostMesh["Translucent Ghost Placement Mesh"]
+        OrbitControl["Spherical Camera Coordinates (θ, φ)"]
+        BuildHistory["Snapshot-Based 3D Scene Undo / Redo"]
+    end
+
+    subgraph S6 ["6. INTERACTION & EXPORT"]
+        GlassUI["Futuristic Glassmorphic UI & 3×3 ViewCube"]
+        Export["📸 2× Retina PNG Downloader<br/>(Double-Buffered Offscreen & WebGL Capture)"]
+    end
+
+    Cam --> MP
+    MP --> Mirror
+    Mirror --> Smooth
+    Smooth --> Detector
+
+    Detector --> PointPose
+    Detector --> PinchPose
+    Detector --> PalmPose
+    Detector --> DualPose
+
+    PointPose --> Router
+    PinchPose --> HoldTimer
+    HoldTimer --> Router
+    PinchPose --> Raycaster
+    PalmPose --> Debounce
+    Debounce --> Router
+    DualPose --> OrbitControl
+
+    Router -- "Active Mode: Ink" --> S5A
+    Router -- "Active Mode: Build" --> S5B
+
+    S5A --> InkDraw & Shapes --> GlowPass --> GlassUI
+    InkHistory -.-> InkDraw
+
+    S5B --> Raycaster --> GridSnap --> GhostMesh --> GlassUI
+    OrbitControl --> GlassUI
+    BuildHistory -.-> Raycaster
+
+    GlassUI -. "Trigger: Save as PNG" .-> Export
+
+    classDef stage fill:#0f172a,stroke:#06b6d4,stroke-width:2px,color:#fff;
+    classDef logic fill:#020617,stroke:#22c55e,stroke-width:2px,color:#fff;
+    classDef engine2d fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#fff;
+    classDef engine3d fill:#2e1065,stroke:#a855f7,stroke-width:2px,color:#fff;
+    classDef output fill:#18181b,stroke:#fb923c,stroke-width:2px,color:#fff;
+
+    class Cam,MP,Mirror,Smooth stage;
+    class Detector,PointPose,PinchPose,PalmPose,DualPose,HoldTimer,Debounce,Router logic;
+    class InkDraw,Shapes,GlowPass,InkHistory engine2d;
+    class Raycaster,GridSnap,GhostMesh,OrbitControl,BuildHistory engine3d;
+    class GlassUI,Export output;
+```
+
+---
+
+<a id="quickstart"></a>
+## 🚀 Quickstart
 
 ### Prerequisites
+* A Chromium-based browser (**Google Chrome** or **Microsoft Edge** recommended for optimal WebGL performance).
+* A standard webcam (internal or external).
 
-* A modern browser (**Chrome recommended**)
-* A webcam
-
----
-
-### Run Locally
-
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/airforge.git
-cd airforge
+git clone https://github.com/SumanthMamidi-MNS/AirForge.git
+cd AirForge
+```
+
+### 2. Install Dependencies
+```bash
 npm install
+```
+
+### 3. Launch Development Server
+```bash
 npm run dev
 ```
+Navigate to `http://localhost:3000`. Grant webcam access when prompted.
 
-Open your browser at:
-
-```
-http://localhost:3000
-```
-
-> Webcam access is required. Works only on **HTTPS or localhost**.
-
----
-
-### Build for Production
-
+### 4. Build for Production
 ```bash
 npm run build
+npm run preview
 ```
 
-The output will be in the `dist/` directory.
+> 🔒 **Security Notice**: Modern browsers require an **HTTPS** connection (or `localhost`) to access the `getUserMedia` webcam API.
 
 ---
 
-## 🛠️ Tech Stack
+<a id="export"></a>
+## 📸 High-Resolution (2×) Export
 
-| Technology                      | Purpose                           |
-| ------------------------------- | --------------------------------- |
-| MediaPipe Hands                 | Real-time hand landmark detection |
-| Three.js                        | 3D scene rendering (Build Space)  |
-| HTML5 Canvas                    | 2D stroke rendering (Ink Space)   |
-| Vite                            | Development server & bundler      |
-| Vanilla JavaScript (ES Modules) | Application logic                 |
-| CSS Glassmorphism               | UI styling                        |
+AirForge includes a production-grade export pipeline that captures your creations without canvas tearing or downsampling:
+
+* **2D Ink Canvas Export**: Uses an offscreen double-dimensioned buffer (`width × 2`, `height × 2`) to bake crisp anti-aliased neon strokes over a pure `#0a0a0a` background.
+* **3D Build Scene Export**: Temporarily raises Three.js `setPixelRatio(Math.max(2, window.devicePixelRatio))` with `preserveDrawingBuffer: true`, forces a single render pass, and outputs directly to a downloadable PNG.
+* **Standardized Filename Format**:
+  * `Airforge_Ink_YYYY-MM-DD.png`
+  * `Airforge_Build_YYYY-MM-DD.png`
 
 ---
 
-## 📁 Project Structure
+## 📁 Repository Directory Structure
 
 ```
 airforge/
-├── index.html              # Entry point & CSS
-├── vite.config.js          # Vite configuration
-├── package.json
-├── src/
-│   ├── main.js             # App init, render loop, mode switching
-│   ├── camera.js           # Webcam setup
-│   ├── constants.js        # Shared constants & thresholds
-│   ├── gestures/
-│   │   ├── detector.js     # Gesture classification
-│   │   └── landmarks.js    # Landmark utilities
-│   ├── ink/
-│   │   ├── inkCanvas.js    # Canvas manager
-│   │   ├── strokes.js      # Stroke model + undo/redo
-│   │   ├── neon.js         # Neon glow renderer
-│   │   ├── shapes.js       # Shape modes (line, circle, rect)
-│   │   ├── gestureHandler.js
-│   │   └── background.js
-│   ├── build/
-│   │   ├── buildScene.js   # Three.js scene + screenshot
-│   │   ├── buildGestureHandler.js
-│   │   ├── blocks.js       # Block manager + undo/redo
-│   │   ├── grid.js
-│   │   ├── preview.js      # Ghost block preview
-│   │   ├── viewcube.js     # Orbit control panel
-│   │   ├── gizmo.js
-│   │   └── orbit.js        # Two-hand orbit control
-│   └── ui/
-│       ├── sidebar.js      # Sidebar controller
-│       ├── helpModal.js    # Gesture guide modal
-│       ├── onboarding.js   # First-visit welcome card
-│       ├── statusBar.js    # Hand tracking status
-│       └── simpleMode.js   # Simple mode toggle
-└── LICENSE
+├── index.html                  # Application layout, glassmorphic styles & MediaPipe CDN
+├── vite.config.js              # Vite server & bundler configuration
+├── package.json                # Project dependencies, metadata & scripts
+├── LICENSE                     # MIT License
+├── README.md                   # Project documentation & interaction guides
+└── src/
+    ├── main.js                 # Core loop, MediaPipe results hook & mode coordinator
+    ├── camera.js               # Camera stream acquisition & initialization
+    ├── constants.js            # Neon palettes, landmark IDs & gesture thresholds
+    ├── gestures/
+    │   ├── detector.js         # 5-gesture classifier (Point, Pinch, Palm, Idle)
+    │   └── landmarks.js        # Vector calculations, Euclidean distance & pinch detection
+    ├── ink/
+    │   ├── inkCanvas.js        # 2D Canvas manager, coordinate mapping & 2× PNG export
+    │   ├── strokes.js          # Stroke data structure with clean Undo/Redo stacks
+    │   ├── neon.js             # Dual-layer neon glow renderer (blur aura + sharp core)
+    │   ├── shapes.js           # Line, Circle, and 4-corner Rectangle parametric math
+    │   ├── gestureHandler.js   # 2D gesture state machine (Draw, 1s Hold Select, Drag)
+    │   └── background.js       # Background templates (Blank, Lined, Grid, Dotted)
+    ├── build/
+    │   ├── buildScene.js       # Three.js setup, top-down isometric view & screenshot
+    │   ├── buildGestureHandler.js # 3D gesture handler with 600ms placement debounce
+    │   ├── blocks.js           # Voxel cube manager with snapshot-based 3D Undo/Redo
+    │   ├── grid.js             # 3D spatial floor grid
+    │   ├── preview.js          # Translucent ghost block preview
+    │   ├── viewcube.js         # 3×3 camera viewpoint matrix panel with smooth easing
+    │   ├── gizmo.js            # Visual transformation indicator for active block
+    │   └── orbit.js            # Two-hand spherical coordinate camera orbit controller
+    └── ui/
+        ├── sidebar.js          # Glassmorphic sidebar actions, sliders & color swatches
+        ├── helpModal.js        # Modal guide detailing gesture interactions
+        ├── onboarding.js       # First-visit tutorial welcome card
+        ├── statusBar.js        # Real-time hand detection status indicator
+        └── simpleMode.js       # Minimal UI toggle for distraction-free creation
 ```
+
+---
+
+## 🛠️ Technology Stack
+
+| Component | Technology | Purpose |
+|---|---|---|
+| **Computer Vision** | [MediaPipe Hands](https://developers.google.com/mediapipe) | 21 3D hand landmark tracking at 60 FPS |
+| **3D Rendering** | [Three.js (r184)](https://threejs.org/) | Voxel construction, raycasting & spherical orbit camera |
+| **2D Rendering** | [HTML5 Canvas 2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) | Dual-layer neon glow drawing and stroke selection |
+| **Bundler & Tooling** | [Vite 8](https://vitejs.dev/) | Hot Module Replacement (HMR) & ES module bundling |
+| **UI Aesthetics** | [CSS Glassmorphism](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter) | Backdrop filters, layered neon glow, responsive sidebar |
 
 ---
 
 ## 📄 License
 
-MIT License
+Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for details.
 
 ---
 
-## 👤 Author
+<div align="center">
 
-**Sumanth Mamidi**
+Designed & Developed by **[Sumanth Mamidi](https://github.com/SumanthMamidi-MNS)**
+
+<sub>Copyright © 2026 Sumanth Mamidi</sub>
+
+</div>
