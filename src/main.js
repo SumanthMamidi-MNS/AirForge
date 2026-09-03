@@ -7,7 +7,7 @@ import * as THREE from "three";
 
 import { SKELETON, FPS, BRUSH } from "./constants.js";
 import { startCamera, initHands } from "./camera.js";
-import { toPixelCoords } from "./gestures/landmarks.js";
+import { toPixelCoords, toScreenNormCoords } from "./gestures/landmarks.js";
 import { detectGesture } from "./gestures/detector.js";
 import { inkCanvas } from "./ink/inkCanvas.js";
 import { gestureHandler } from "./ink/gestureHandler.js";
@@ -74,11 +74,24 @@ function updateFPS(now) {
 // ─── MediaPipe Results Callback ────────────
 function onHandResults(results) {
   if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-    latestHandData = results.multiHandLandmarks.map((landmarks, i) => ({
-      handIndex: i,
-      landmarks: landmarks,
-      handedness: results.multiHandedness?.[i]?.label || "Unknown",
-    }));
+    const videoW = video.videoWidth || 1280;
+    const videoH = video.videoHeight || 720;
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+
+    latestHandData = results.multiHandLandmarks.map((landmarks, i) => {
+      // Map raw video coordinates to screen coordinates compensating for object-fit: cover
+      const screenLandmarks = landmarks.map((lm) =>
+        toScreenNormCoords(lm, screenW, screenH, videoW, videoH),
+      );
+
+      return {
+        handIndex: i,
+        landmarks: screenLandmarks,
+        rawLandmarks: landmarks,
+        handedness: results.multiHandedness?.[i]?.label || "Unknown",
+      };
+    });
   } else {
     latestHandData = [];
   }

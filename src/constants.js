@@ -5,8 +5,8 @@
 
 // ─── Webcam ───────────────────────────────
 export const WEBCAM = {
-  WIDTH: 640,
-  HEIGHT: 480,
+  WIDTH: 1280,
+  HEIGHT: 720,
   TARGET_FPS: 30,
 };
 

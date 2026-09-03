@@ -127,3 +127,48 @@ export function toPixelCoords(landmark, canvasWidth, canvasHeight) {
     y: landmark.y * canvasHeight,
   };
 }
+
+/**
+ * Map raw normalized landmark coordinates (0-1) from the video stream
+ * to screen-space coordinates, compensating for CSS `object-fit: cover` scaling and cropping.
+ *
+ * @param {Object} landmark - {x, y, z}
+ * @param {number} screenW - viewport / canvas width
+ * @param {number} screenH - viewport / canvas height
+ * @param {number} videoW - native video width (video.videoWidth)
+ * @param {number} videoH - native video height (video.videoHeight)
+ * @returns {Object} {x, y, z} in screen-normalized space [0, 1]
+ */
+export function toScreenNormCoords(landmark, screenW, screenH, videoW = 640, videoH = 480) {
+  if (!videoW || !videoH || !screenW || !screenH) {
+    return { x: landmark.x, y: landmark.y, z: landmark.z || 0 };
+  }
+
+  const screenRatio = screenW / screenH;
+  const videoRatio = videoW / videoH;
+
+  let scale, offsetX, offsetY;
+
+  if (screenRatio > videoRatio) {
+    // Screen is wider than video (e.g. 16:9 screen with 4:3 video)
+    // Video is scaled to fit screen width, cropped on top/bottom
+    scale = screenW / videoW;
+    offsetX = 0;
+    offsetY = (screenH - videoH * scale) / 2;
+  } else {
+    // Screen is taller than video (e.g. portrait or narrow window)
+    // Video is scaled to fit screen height, cropped on left/right
+    scale = screenH / videoH;
+    offsetX = (screenW - videoW * scale) / 2;
+    offsetY = 0;
+  }
+
+  const renderW = videoW * scale;
+  const renderH = videoH * scale;
+
+  return {
+    x: (landmark.x * renderW + offsetX) / screenW,
+    y: (landmark.y * renderH + offsetY) / screenH,
+    z: landmark.z || 0,
+  };
+}
