@@ -72,8 +72,8 @@ export function initHands(video, onResults) {
     hands.setOptions({
       maxNumHands: 2,
       modelComplexity: 1,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
+      minDetectionConfidence: 0.7, // Raised from 0.5 to prevent facial/shadow false positives
+      minTrackingConfidence: 0.65, // Raised from 0.5 for stable continuous tracking
     });
 
     hands.onResults(onResults);

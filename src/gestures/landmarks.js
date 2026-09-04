@@ -57,8 +57,9 @@ export function isFingerExtended(landmarks, tipIdx, pipIdx, mcpIdx) {
   const tipToWrist = distance(tip, wrist);
   const pipToWrist = distance(pip, wrist);
 
-  // If tip is farther from wrist than pip, finger is extended
-  return tipToWrist > pipToWrist * 1.02; // Small threshold to avoid flicker
+  // Require tip to be at least 8% farther from wrist than PIP joint
+  // This prevents relaxed/curled fingers from falsely triggering as extended
+  return tipToWrist > pipToWrist * 1.08;
 }
 
 /**
@@ -89,16 +90,15 @@ export function getExtendedFingers(landmarks) {
 /**
  * Check if thumb and index fingertip are close together (pinch).
  * @param {Array} landmarks - 21 landmarks
+ * @param {number} [threshold=0.085]
  * @returns {boolean}
  */
-export function isPinching(landmarks) {
+export function isPinching(landmarks, threshold = 0.085) {
   const thumbTip = landmarks[4];
   const indexTip = landmarks[8];
   const dist = distance(thumbTip, indexTip);
 
-  // Threshold for pinch detection
-  // Normalized at typical arm's length from camera
-  return dist < 0.08;
+  return dist < threshold;
 }
 
 /**

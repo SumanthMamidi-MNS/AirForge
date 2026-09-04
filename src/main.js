@@ -71,6 +71,36 @@ function updateFPS(now) {
   }
 }
 
+/**
+ * Filter out false positives (e.g., mouth, nose, mustache, or tiny background noise).
+ * A genuine hand interacting with the webcam has a minimum bounding box and palm span.
+ */
+function isValidHand(rawLandmarks, score = 1.0) {
+  if (score < 0.7) return false;
+
+  let minX = 1, maxX = 0, minY = 1, maxY = 0;
+  for (let i = 0; i < rawLandmarks.length; i++) {
+    const lm = rawLandmarks[i];
+    if (lm.x < minX) minX = lm.x;
+    if (lm.x > maxX) maxX = lm.x;
+    if (lm.y < minY) minY = lm.y;
+    if (lm.y > maxY) maxY = lm.y;
+  }
+  const w = maxX - minX;
+  const h = maxY - minY;
+
+  // Real interacting hand spans at least 8% of camera width or height
+  if (w < 0.08 && h < 0.08) return false;
+
+  // Anatomical check: wrist to middle knuckle span
+  const wrist = rawLandmarks[0];
+  const middleMcp = rawLandmarks[9];
+  const palmSpan = Math.hypot(middleMcp.x - wrist.x, middleMcp.y - wrist.y);
+  if (palmSpan < 0.04) return false;
+
+  return true;
+}
+
 // ─── MediaPipe Results Callback ────────────
 function onHandResults(results) {
   if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
@@ -79,19 +109,25 @@ function onHandResults(results) {
     const screenW = window.innerWidth;
     const screenH = window.innerHeight;
 
-    latestHandData = results.multiHandLandmarks.map((landmarks, i) => {
+    const validHands = [];
+    results.multiHandLandmarks.forEach((landmarks, i) => {
+      const score = results.multiHandedness?.[i]?.score ?? 1.0;
+      if (!isValidHand(landmarks, score)) return;
+
       // Map raw video coordinates to screen coordinates compensating for object-fit: cover
       const screenLandmarks = landmarks.map((lm) =>
         toScreenNormCoords(lm, screenW, screenH, videoW, videoH),
       );
 
-      return {
-        handIndex: i,
+      validHands.push({
+        handIndex: validHands.length,
         landmarks: screenLandmarks,
         rawLandmarks: landmarks,
         handedness: results.multiHandedness?.[i]?.label || "Unknown",
-      };
+      });
     });
+
+    latestHandData = validHands;
   } else {
     latestHandData = [];
   }

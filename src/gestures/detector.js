@@ -27,8 +27,8 @@ export function detectGesture(landmarks) {
   else if (pinch) {
     type = "PINCH";
   }
-  // POINT — index only, middle curled
-  else if (fingers.index && !fingers.middle) {
+  // POINT — index finger extended and prominent (even if middle finger is relaxed)
+  else if (fingers.index && (!fingers.middle || landmarks[8].y < landmarks[12].y - 0.03)) {
     type = "POINT";
   }
   // OPEN_PALM — 4+ fingers extended

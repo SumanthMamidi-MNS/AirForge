@@ -50,8 +50,6 @@ class InkCanvas {
   setSize(size)  { this.currentSize = size; }
 
   startDrawing(normX, normY) {
-    this._lastPoint = null;
-    this._smoothWindow = [];
     const { x, y } = this._normToPixel(normX, normY);
     strokeManager.saveHistory();
     strokeManager.startStroke(this.currentColor, this.currentSize, false);
@@ -64,15 +62,21 @@ class InkCanvas {
 
   continueDrawing(normX, normY) {
     const { x, y } = this._normToPixel(normX, normY);
-    this._smoothWindow.push({ x, y });
-    if (this._smoothWindow.length > this._smoothWindowSize) this._smoothWindow.shift();
-    const sx = this._smoothWindow.reduce((s, p) => s + p.x, 0) / this._smoothWindow.length;
-    const sy = this._smoothWindow.reduce((s, p) => s + p.y, 0) / this._smoothWindow.length;
-    if (this._lastPoint) {
-      const dx = sx - this._lastPoint.x;
-      const dy = sy - this._lastPoint.y;
-      if (Math.sqrt(dx * dx + dy * dy) < this._minPointDist) return;
+    if (!this._lastPoint) {
+      this._lastPoint = { x, y };
+      strokeManager.addPoint(x, y);
+      return;
     }
+
+    const dist = Math.hypot(x - this._lastPoint.x, y - this._lastPoint.y);
+    if (dist < 2) return; // ignore micro-tremor
+
+    // Dynamic smoothing: rapid handwriting curves track with zero lag (alpha up to 0.85),
+    // while slow micro-movements filter out camera sensor noise (alpha ~0.45).
+    const alpha = Math.min(0.85, Math.max(0.45, dist / 24));
+    const sx = this._lastPoint.x + alpha * (x - this._lastPoint.x);
+    const sy = this._lastPoint.y + alpha * (y - this._lastPoint.y);
+
     strokeManager.addPoint(sx, sy);
     this._lastPoint = { x: sx, y: sy };
   }
