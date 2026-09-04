@@ -53,33 +53,28 @@ Most spatial computing experiences today require **$500–$3,500 VR headsets** o
 ## 🔀 Interactive Spaces
 
 ### ✍️ Ink Space · *2D Precision Sketching*
-> **Air-Pen Clutch** ── Pinch to write and release to lift pen cleanly, eliminating stray connecting lines  
-> **Smart Script Beautifier** ── Automatically smooths and beautifies shaky air-writing with Chaikin subdivision  
-> **Neon Typography** ── Instantly place glowing, crisp vector text (e.g. your name) directly on canvas  
+> **Point & Draw** ── Trace smooth neon curves with real-time sub-pixel Bézier interpolation  
 > **Parametric Shapes** ── Seamlessly create straight lines, perfect circles, and 4-corner rectangles  
-> **Pinch-to-Move** ── Drag and reposition any stroke or text anywhere with physical gesture kinetics  
+> **Pinch-to-Move** ── Hold pinch for 1 second on any stroke to pick up, drag, and reposition it anywhere  
 > **Canvas Guides** ── Switch between Blank, Lined, Grid, and Dotted backgrounds with isolated Undo/Redo history  
 
----
-
-### 🧊 Build Space · *3D Spatial Architecture*
-> **Ground-Plane Snapping** ── Real-time raycasting against $Y = 0$ ground plane for seamless voxel alignment  
-> **Ghost Block Preview** ── Translucent wireframe ghost preview gives instant spatial depth feedback  
-> **Two-Hand 360° Orbit** ── Spread both palms to fluidly orbit the 3D camera around your creation  
-> **Interactive 3D ViewCube** ── Click any face, edge, or corner of the 3D gizmo to snap to standard CAD orthographic views  
-> **Precision Mouse Zoom** ── Smooth wheel-driven zoom smoothly scales camera radius without losing orbit focus  
+### 🧊 Build Space · *3D Spatial Voxel Studio*
+> **Top-Down Start** ── Launches straight into an isometric ground view for immediate spatial orientation  
+> **Raycast & Snap** ── Pinch to project a glowing ghost voxel snapped precisely onto the 1.0-unit ground grid  
+> **Palm Placement** ── Open your hand to commit voxel blocks into the scene with 600ms duplicate protection  
+> **Dual-Palm Orbit** ── Raise two open hands to rotate the 3D scene, or tap presets on the 3×3 ViewCube  
 
 ---
 
 <a id="gestures"></a>
 ## 🤲 Gesture Interaction Matrix
 
-AirForge uses an intuitive gesture recognition engine designed for zero false triggers:
+AirForge uses an intuitive 5-gesture recognition engine designed for zero false triggers:
 
 | Gesture | How to Perform | What It Does |
 | :---: | :--- | :--- |
-| **🤏 Air-Pen Pinch** | Thumb & index fingertips together | **Write / Draw** cleanly *(Ink Space)* • **Preview** 3D voxel *(Build Space)* |
-| **☝️ Point (Hover)** | Index extended, thumb apart | **Aim cursor** with glowing reticle • **Laser draw** *(when in Laser mode)* |
+| **☝️ Point** | Index extended, middle finger curled | **Draw** neon curves & trace shape guides *(Ink Space)* |
+| **🤏 Pinch** | Thumb & index fingertips touching | **Preview** 3D voxel *(Build)* • **Hold 1s** to grab & move stroke *(Ink)* |
 | **✋ Open Palm** | 4+ fingers spread open | **Commit** voxel • **Release** held stroke • **Stop** drawing |
 | **🤲 Two Palms** | Both hands open in camera view | **Orbit** 3D camera 360° around scene origin *(Build Space)* |
 | **🖱️ Scroll Wheel** | Mouse wheel vertical scroll | **Zoom** in / out smoothly *(Build Space)* |

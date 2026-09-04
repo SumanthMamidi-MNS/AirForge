@@ -71,38 +71,6 @@ export function drawNeonStroke(ctx, stroke) {
 }
 
 /**
- * Draw a crisp neon typography text block with dual-layer glow.
- * @param {CanvasRenderingContext2D} ctx
- * @param {Object} stroke - { text, points, color, size, fontSize }
- */
-export function drawNeonText(ctx, stroke) {
-  if (!stroke.text || stroke.points.length === 0) return;
-
-  const { text, color, points } = stroke;
-  const pt = points[0];
-  const fontSize = stroke.fontSize || 36;
-
-  ctx.save();
-  ctx.font = `bold ${fontSize}px 'Inter', 'Segoe UI', system-ui, sans-serif`;
-  ctx.textBaseline = "top";
-
-  // Layer 1: Neon Aura Glow
-  ctx.shadowColor = color;
-  ctx.shadowBlur = fontSize * 0.75;
-  ctx.fillStyle = color;
-  ctx.fillText(text, pt.x, pt.y);
-
-  // Layer 2: Clean White Core
-  ctx.shadowColor = "rgba(255,255,255,0.7)";
-  ctx.shadowBlur = 4;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText(text, pt.x, pt.y);
-
-  ctx.shadowBlur = 0;
-  ctx.restore();
-}
-
-/**
  * Draw a dashed selection box around a stroke's bounding box.
  * @param {CanvasRenderingContext2D} ctx
  * @param {Object} stroke
@@ -110,23 +78,13 @@ export function drawNeonText(ctx, stroke) {
 export function drawSelectionBox(ctx, stroke) {
   if (stroke.points.length === 0) return;
 
-  let minX = stroke.points[0].x;
-  let minY = stroke.points[0].y;
-  let maxX = stroke.points[0].x;
-  let maxY = stroke.points[0].y;
-
-  if (stroke.text) {
-    const fontSize = stroke.fontSize || 36;
-    maxX = minX + stroke.text.length * fontSize * 0.6;
-    maxY = minY + fontSize;
-  } else {
-    stroke.points.forEach((p) => {
-      if (p.x < minX) minX = p.x;
-      if (p.y < minY) minY = p.y;
-      if (p.x > maxX) maxX = p.x;
-      if (p.y > maxY) maxY = p.y;
-    });
-  }
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  stroke.points.forEach((p) => {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  });
 
   const pad = 12;
   ctx.save();
@@ -153,9 +111,7 @@ export function renderGlow(ctx, strokes, highlightedStroke = null, selectedStrok
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   strokes.forEach((stroke) => {
-    if (stroke.text) {
-      drawNeonText(ctx, stroke);
-    } else if (stroke === highlightedStroke) {
+    if (stroke === highlightedStroke) {
       // Highlight in red-orange for selection feedback
       ctx.save();
       ctx.strokeStyle = "#ff4444";

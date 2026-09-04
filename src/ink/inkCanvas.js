@@ -7,7 +7,6 @@
 import { strokeManager } from "./strokes.js";
 import { renderGlow, drawPreviewStroke } from "./neon.js";
 import { shapeHandler } from "./shapes.js";
-import { beautifyStroke } from "./beautifier.js";
 
 class InkCanvas {
   constructor() {
@@ -19,7 +18,6 @@ class InkCanvas {
 
     this.currentColor = "#00ff88";
     this.currentSize = 6;
-    this.autoBeautify = true;
 
     this.highlightedStroke = null;
     this.selectedStroke = null;
@@ -81,38 +79,6 @@ class InkCanvas {
 
     strokeManager.addPoint(sx, sy);
     this._lastPoint = { x: sx, y: sy };
-  }
-
-  /**
-   * Finalize a completed stroke and apply Smart Script auto-beautification.
-   */
-  finishDrawing() {
-    this._lastPoint = null;
-    if (this.autoBeautify && strokeManager.strokes.length > 0) {
-      const lastStroke = strokeManager.strokes[strokeManager.strokes.length - 1];
-      if (lastStroke && !lastStroke.isShape && !lastStroke.text && lastStroke.points.length > 2) {
-        lastStroke.points = beautifyStroke(lastStroke.points);
-      }
-    }
-    this.render();
-  }
-
-  /**
-   * Add a crisp, glowing neon text block to the canvas.
-   */
-  addText(text, normX = 0.5, normY = 0.5, fontSize = 44) {
-    const { x, y } = this._normToPixel(normX, normY);
-    const stroke = strokeManager.addTextStroke(
-      text,
-      x,
-      y,
-      this.currentColor,
-      this.currentSize,
-      fontSize
-    );
-    this.setSelection(stroke);
-    this.render();
-    return stroke;
   }
 
   findStrokeAt(normX, normY, threshold = 30) {

@@ -202,35 +202,6 @@ function drawSkeleton(hands) {
     });
     skeletonCtx.restore();
   });
-
-  // Precision hover reticle for Ink Space
-  if (currentMode === "ink" && hands.length > 0 && hands[0]?.landmarks?.[8]) {
-    const tip = toPixelCoords(hands[0].landmarks[8], skeletonCanvas.width, skeletonCanvas.height);
-    const color = inkCanvas.currentColor || "#00ff88";
-
-    skeletonCtx.save();
-    skeletonCtx.translate(skeletonCanvas.width, 0);
-    skeletonCtx.scale(-1, 1);
-
-    // Outer neon ring
-    skeletonCtx.beginPath();
-    skeletonCtx.arc(tip.x, tip.y, 8, 0, Math.PI * 2);
-    skeletonCtx.strokeStyle = color;
-    skeletonCtx.lineWidth = 2;
-    skeletonCtx.shadowColor = color;
-    skeletonCtx.shadowBlur = 12;
-    skeletonCtx.stroke();
-
-    // Center bright dot
-    skeletonCtx.beginPath();
-    skeletonCtx.arc(tip.x, tip.y, 2.5, 0, Math.PI * 2);
-    skeletonCtx.fillStyle = "#ffffff";
-    skeletonCtx.fill();
-
-    skeletonCtx.shadowBlur = 0;
-    skeletonCtx.restore();
-  }
-
   skeletonCtx.restore();
 }
 

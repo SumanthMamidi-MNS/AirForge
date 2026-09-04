@@ -19,27 +19,18 @@ const State = {
   MOVING: "MOVING",
 };
 
-const PINCH_SELECT_MS = 600; // 600ms hold on a stroke to select
-const DRAW_GRACE_FRAMES = 7;   // Tolerate up to ~200ms tracking micro-drops
+const PINCH_SELECT_MS = 800; // Snappy 800ms hold to select
+const DRAW_GRACE_FRAMES = 7;   // Tolerate up to ~200ms tracking micro-drops without breaking strokes
 const PINCH_GRACE_FRAMES = 7;  // Tolerate tracking flicker without dropping selected strokes
 
 class GestureHandler {
   constructor() {
     this.state = State.IDLE;
-    this.penTrigger = "PINCH"; // Default: Air-Pen (pinch to write, release to lift)
     this.timerStart = 0;
     this.lastPinchX = 0;
     this.lastPinchY = 0;
     this.drawGraceCount = 0;
     this.pinchGraceCount = 0;
-  }
-
-  setPenTrigger(trigger) {
-    this.penTrigger = trigger;
-  }
-
-  getPenTrigger() {
-    return this.penTrigger;
   }
 
   processGesture(gesture) {
@@ -57,48 +48,7 @@ class GestureHandler {
   // ─── IDLE ─────────────────────────────────
 
   _handleIdle(gesture) {
-    // 🤏 AIR-PEN MODE (Pinch = Pen Down, Release = Pen Up)
-    if (this.penTrigger === "PINCH") {
-      if (gesture.type === "PINCH" || gesture.type === "PINCH_INDEX") {
-        if (!gesture.pinchMidpoint) return { action: "idle", message: "" };
-
-        // Check if pinching directly on an existing stroke to select/move it
-        const near = inkCanvas.findStrokeAt(gesture.pinchMidpoint.x, gesture.pinchMidpoint.y, 35);
-        if (near) {
-          this.state = State.PINCH_WAITING;
-          this.timerStart = performance.now();
-          this.lastPinchX = gesture.pinchMidpoint.x;
-          this.lastPinchY = gesture.pinchMidpoint.y;
-          this.pinchGraceCount = 0;
-          inkCanvas.setHighlight(near);
-          return { action: "selecting", message: "🤏 Holding stroke..." };
-        }
-
-        // Empty space: Pen DOWN! Start handwriting stroke
-        this.state = State.DRAWING;
-        this.drawGraceCount = 0;
-        const mode = shapeHandler.getMode();
-
-        if (mode === ShapeMode.FREE) {
-          inkCanvas.startDrawing(gesture.pinchMidpoint.x, gesture.pinchMidpoint.y);
-        } else {
-          const cw = inkCanvas.glowCanvas.width;
-          const ch = inkCanvas.glowCanvas.height;
-          shapeHandler.startShape(gesture.pinchMidpoint.x, gesture.pinchMidpoint.y, inkCanvas.currentColor, inkCanvas.currentSize, cw, ch);
-        }
-
-        const modeName = mode === ShapeMode.FREE ? "Writing" : `Drawing ${mode.toLowerCase()}`;
-        return { action: "drawing", message: `✍️ ${modeName} — release pinch to lift pen` };
-      }
-
-      if (gesture.type === "POINT") {
-        return { action: "hover", message: "🤏 Pinch thumb & index to write" };
-      }
-
-      return { action: "idle", message: "" };
-    }
-
-    // ☝️ LASER MODE (Point = Draw continuously)
+    // ☝️ POINT → start drawing
     if (gesture.type === "POINT") {
       this.state = State.DRAWING;
       this.drawGraceCount = 0;
@@ -116,6 +66,7 @@ class GestureHandler {
       return { action: "drawing", message: `✍️ ${modeName} — open palm to stop` };
     }
 
+    // 🤏 PINCH → begin selection hold timer
     if (gesture.type === "PINCH" || gesture.type === "PINCH_INDEX") {
       if (!gesture.pinchMidpoint) return { action: "idle", message: "" };
 
@@ -139,52 +90,18 @@ class GestureHandler {
   // ─── DRAWING ──────────────────────────────
 
   _handleDrawing(gesture) {
-    // Air-Pen mode: Pinch maintains stroke; releasing pinch lifts the pen cleanly!
-    if (this.penTrigger === "PINCH") {
-      if (gesture.type === "PINCH" || gesture.type === "PINCH_INDEX") {
-        this.drawGraceCount = 0;
-        const pt = gesture.pinchMidpoint || gesture.indexTip;
-        const mode = shapeHandler.getMode();
-        if (mode === ShapeMode.FREE) {
-          inkCanvas.continueDrawing(pt.x, pt.y);
-        } else {
-          const cw = inkCanvas.glowCanvas.width;
-          const ch = inkCanvas.glowCanvas.height;
-          shapeHandler.updateShape(pt.x, pt.y, cw, ch);
-        }
-        return { action: "drawing", message: "✍️ Writing..." };
-      }
-
-      // Releasing pinch lifts the pen immediately
-      this.drawGraceCount = (this.drawGraceCount || 0) + 1;
-      if (this.drawGraceCount < 2) {
-        return { action: "drawing", message: "✍️ Writing..." };
-      }
-
-      const mode = shapeHandler.getMode();
-      if (mode !== ShapeMode.FREE) {
-        shapeHandler.finalizeShape(inkCanvas.currentColor, inkCanvas.currentSize);
-      } else {
-        inkCanvas.finishDrawing();
-      }
-      this.state = State.IDLE;
-      this.drawGraceCount = 0;
-      return { action: "idle", message: "✨ Pen lifted — stroke smoothed" };
-    }
-
-    // Laser mode: Pointing draws, OPEN_PALM stops
+    // Deliberate stop: OPEN_PALM terminates drawing immediately
     if (gesture.type === "OPEN_PALM") {
       const mode = shapeHandler.getMode();
       if (mode !== ShapeMode.FREE) {
         shapeHandler.finalizeShape(inkCanvas.currentColor, inkCanvas.currentSize);
-      } else {
-        inkCanvas.finishDrawing();
       }
       this.state = State.IDLE;
       this.drawGraceCount = 0;
       return { action: "idle", message: "✋ Drawing stopped" };
     }
 
+    // Active pointing: continue stroke
     if (gesture.type === "POINT") {
       this.drawGraceCount = 0;
       const mode = shapeHandler.getMode();
@@ -198,16 +115,17 @@ class GestureHandler {
       return { action: "drawing", message: "✍️ Drawing..." };
     }
 
+    // Temporary tracking flicker (IDLE, brief NO_HAND during handwriting):
+    // Bridge across micro-drops instead of instantly breaking the stroke
     this.drawGraceCount = (this.drawGraceCount || 0) + 1;
     if (this.drawGraceCount < DRAW_GRACE_FRAMES) {
       return { action: "drawing", message: "✍️ Drawing..." };
     }
 
+    // Sustained loss: finalize stroke
     const mode = shapeHandler.getMode();
     if (mode !== ShapeMode.FREE) {
       shapeHandler.finalizeShape(inkCanvas.currentColor, inkCanvas.currentSize);
-    } else {
-      inkCanvas.finishDrawing();
     }
     this.state = State.IDLE;
     this.drawGraceCount = 0;
@@ -217,6 +135,7 @@ class GestureHandler {
   // ─── PINCH WAITING (selection hold) ───────
 
   _handlePinchWaiting(gesture) {
+    // Deliberate cancellation: OPEN_PALM
     if (gesture.type === "OPEN_PALM") {
       inkCanvas.setHighlight(null);
       this.state = State.IDLE;
@@ -253,6 +172,7 @@ class GestureHandler {
       return { action: "selecting", message: `🤏 Selecting... ${pct}%` };
     }
 
+    // Micro-flicker during selection wait: maintain timer
     this.pinchGraceCount = (this.pinchGraceCount || 0) + 1;
     if (this.pinchGraceCount < PINCH_GRACE_FRAMES) {
       return { action: "selecting", message: "🤏 Selecting..." };
