@@ -7,6 +7,7 @@ import { inkCanvas } from "../ink/inkCanvas.js";
 import { shapeHandler } from "../ink/shapes.js";
 import { background } from "../ink/background.js";
 import { simpleMode } from "./simpleMode.js";
+import { gestureHandler } from "../ink/gestureHandler.js";
 
 let blockManager = null;
 let grid = null;
@@ -108,12 +109,24 @@ class Sidebar {
     section.setAttribute("data-advanced", "true");
     section.id = "ink-controls";
     section.innerHTML = `
-      <div class="section-label">Shape Mode</div>
-      <div class="shape-grid">
+      <div class="section-label">Shape & Text</div>
+      <div class="shape-grid" style="grid-template-columns: repeat(3, 1fr);">
         <button class="shape-btn active" data-shape="FREE">🖊️ Free</button>
         <button class="shape-btn" data-shape="LINE">📏 Line</button>
         <button class="shape-btn" data-shape="CIRCLE">⭕ Circle</button>
         <button class="shape-btn" data-shape="RECTANGLE">⬜ Rect</button>
+        <button class="shape-btn" id="btn-text-tool" data-shape="TEXT" style="grid-column: span 2; border-color: rgba(56,189,248,0.35); color: #38bdf8;">🔤 Neon Text</button>
+      </div>
+
+      <div class="section-label" style="margin-top: 12px;">Pen Trigger</div>
+      <div class="shape-grid" style="grid-template-columns: 1fr 1fr;">
+        <button class="trigger-btn active" data-trigger="PINCH" title="Pinch thumb & index to write, release to lift pen">🤏 Air-Pen</button>
+        <button class="trigger-btn" data-trigger="POINT" title="Point index finger to draw continuously">☝️ Laser</button>
+      </div>
+
+      <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #94a3b8;">
+        <span>✨ Smart Script Smoothing</span>
+        <input type="checkbox" id="toggle-beautify" checked style="accent-color: #06b6d4; cursor: pointer; width: 15px; height: 15px;" />
       </div>
     `;
     content.appendChild(section);
@@ -121,11 +134,132 @@ class Sidebar {
     this.shapeBtns = section.querySelectorAll(".shape-btn");
     this.shapeBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
+        if (btn.dataset.shape === "TEXT") {
+          this._openTextModal();
+          return;
+        }
         this.shapeBtns.forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
         shapeHandler.setMode(btn.dataset.shape);
       });
     });
+
+    const triggerBtns = section.querySelectorAll(".trigger-btn");
+    triggerBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        triggerBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        gestureHandler.setPenTrigger(btn.dataset.trigger);
+      });
+    });
+
+    const beautifyCheckbox = section.querySelector("#toggle-beautify");
+    if (beautifyCheckbox) {
+      beautifyCheckbox.addEventListener("change", (e) => {
+        inkCanvas.autoBeautify = e.target.checked;
+      });
+    }
+  }
+
+  _openTextModal() {
+    let modal = document.getElementById("neon-text-modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "neon-text-modal";
+      modal.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(2, 6, 23, 0.78);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 1000;
+      `;
+      modal.innerHTML = `
+        <div style="
+          background: rgba(15, 23, 42, 0.95);
+          border: 1px solid rgba(6, 182, 212, 0.4);
+          box-shadow: 0 0 40px rgba(6, 182, 212, 0.25);
+          border-radius: 16px;
+          padding: 24px 28px;
+          max-width: 380px;
+          width: 90%;
+          text-align: center;
+          font-family: 'Inter', system-ui, sans-serif;
+          color: #f8fafc;
+        ">
+          <div style="font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #38bdf8;">🔤 Neon Typography</div>
+          <div style="font-size: 13px; color: #94a3b8; margin-bottom: 18px;">Type your name or title to place glowing text:</div>
+          <input type="text" id="neon-modal-input" placeholder="e.g. Sumanth" value="Sumanth" style="
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(2, 6, 23, 0.85);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            border-radius: 8px;
+            padding: 11px 14px;
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+            outline: none;
+            margin-bottom: 18px;
+            text-align: center;
+          " />
+          <div style="display: flex; gap: 10px;">
+            <button id="neon-modal-cancel" style="
+              flex: 1;
+              background: rgba(51, 65, 85, 0.6);
+              border: 1px solid rgba(148, 163, 184, 0.2);
+              border-radius: 8px;
+              color: #cbd5e1;
+              padding: 10px;
+              font-weight: 600;
+              cursor: pointer;
+            ">Cancel</button>
+            <button id="neon-modal-confirm" style="
+              flex: 1;
+              background: linear-gradient(135deg, #06b6d4, #3b82f6);
+              border: none;
+              border-radius: 8px;
+              color: #ffffff;
+              padding: 10px;
+              font-weight: 600;
+              cursor: pointer;
+              box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+            ">Insert Text</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const cancelBtn = modal.querySelector("#neon-modal-cancel");
+      const confirmBtn = modal.querySelector("#neon-modal-confirm");
+      const input = modal.querySelector("#neon-modal-input");
+
+      cancelBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+      });
+
+      const doInsert = () => {
+        const txt = input.value.trim();
+        if (txt) {
+          inkCanvas.addText(txt, 0.5, 0.35, 48);
+        }
+        modal.style.display = "none";
+      };
+
+      confirmBtn.addEventListener("click", doInsert);
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doInsert();
+        if (e.key === "Escape") modal.style.display = "none";
+      });
+    }
+
+    modal.style.display = "flex";
+    const input = modal.querySelector("#neon-modal-input");
+    if (input) {
+      input.focus();
+      input.select();
+    }
   }
 
   _addBackgroundControls() {

@@ -22,6 +22,8 @@ class StrokeManager {
       points: s.points.map((p) => ({ x: p.x, y: p.y })),
       selected: false,
       isShape: s.isShape || false,
+      text: s.text || null,
+      fontSize: s.fontSize || null,
     }));
   }
 
@@ -33,6 +35,8 @@ class StrokeManager {
       points: s.points.map((p) => ({ x: p.x, y: p.y })),
       selected: false,
       isShape: s.isShape || false,
+      text: s.text || null,
+      fontSize: s.fontSize || null,
     }));
   }
 
@@ -73,6 +77,25 @@ class StrokeManager {
     this.strokes[this.strokes.length - 1].points.push({ x, y });
   }
 
+  /**
+   * Add a crisp neon text block.
+   */
+  addTextStroke(text, x, y, color, size, fontSize = 36) {
+    this.saveHistory();
+    const stroke = {
+      id: Date.now() + Math.random(),
+      color,
+      size,
+      points: [{ x, y }],
+      selected: false,
+      isShape: false,
+      text,
+      fontSize,
+    };
+    this.strokes.push(stroke);
+    return stroke;
+  }
+
   removeStroke(id) {
     const idx = this.strokes.findIndex((s) => s.id === id);
     if (idx === -1) return false;
@@ -85,6 +108,20 @@ class StrokeManager {
     let nearest = null;
     let min = threshold;
     for (const s of this.strokes) {
+      if (s.text) {
+        const pt = s.points[0];
+        const w = (s.text.length * (s.fontSize || 36) * 0.6) + 20;
+        const h = (s.fontSize || 36) + 20;
+        if (x >= pt.x - 15 && x <= pt.x + w && y >= pt.y - 15 && y <= pt.y + h) {
+          return s;
+        }
+        const d = Math.hypot(pt.x - x, pt.y - y);
+        if (d < min + 20) {
+          min = d;
+          nearest = s;
+        }
+        continue;
+      }
       for (const p of s.points) {
         const d = Math.hypot(p.x - x, p.y - y);
         if (d < min) {
