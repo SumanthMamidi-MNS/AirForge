@@ -49,6 +49,21 @@ class StatusBar {
   }
 
   /**
+   * Set custom message and warning status.
+   * @param {string} text
+   * @param {boolean} isWarning
+   */
+  setMessage(text, isWarning = false) {
+    this.element.textContent = text;
+    this.element.classList.remove("hand-lost", "hand-detected");
+    if (isWarning) {
+      this.element.classList.add("hand-lost");
+    } else {
+      this.element.classList.add("hand-detected");
+    }
+  }
+
+  /**
    * Hide the status bar completely.
    */
   hide() {

@@ -38,14 +38,20 @@ Most spatial computing experiences today require **$500–$3,500 VR headsets** o
 > **⚡ Zero-Install Spatial Engine**  
 > Runs natively in modern browsers via WebRTC & WebGL. Zero external sensors, drivers, or software installation required.
 >
+> **✍️ Calligraphic Cursive Engine & Smart Tail-Trimming**  
+> Direction-aware line weighting and automated exit-fling pruning turn natural hand air-writing into fluid, elegant neon cursive without flyaway trailing lines.
+>
 > **🪞 Mirror Parity Calibration**  
 > Mathematical screen-space inversion ($x' = 1 - x$) ensures physical hand motion matches on-screen interaction with zero cognitive delay.
+>
+> **📷 Seamless Permission Flow**  
+> Non-intrusive status-bar permission prompts and click-to-retry handling keep the workspace fully open without jarring central error takeovers.
 >
 > **🌌 Neon Glassmorphism Shell**  
 > Deep obsidian `#020617` workspace with contextual state-driven neon glow feedback and an electric cyan-white (`#7df9ff`) precision slider.
 >
 > **🛡️ Deterministic Input Guard**  
-> Symmetrical undo/redo stacks & a 600ms debounce guard eliminate phantom inputs and accidental voxel duplication.
+> Symmetrical undo/redo stacks, hysteresis pinch dragging & a 600ms debounce guard eliminate phantom inputs and accidental voxel duplication.
 
 ---
 
@@ -53,9 +59,11 @@ Most spatial computing experiences today require **$500–$3,500 VR headsets** o
 ## 🔀 Interactive Spaces
 
 ### ✍️ Ink Space · *2D Precision Sketching*
-> **Point & Draw** ── Trace smooth neon curves with real-time sub-pixel Bézier interpolation  
+> **Point & Draw** ── Trace fluid neon cursive with Catmull-Rom cubic Bézier splines and directional calligraphic line weights  
+> **Curvature Refinement** ── Automatic post-stroke Laplacian jitter filtration smooths handwriting loops and signatures  
+> **Exit-Tail Trimming** ── Intelligent velocity monitoring prunes accidental flyaway lines when dropping your hand  
 > **Parametric Shapes** ── Seamlessly create straight lines, perfect circles, and 4-corner rectangles  
-> **Pinch-to-Move** ── Hold pinch for 1 second on any stroke to pick up, drag, and reposition it anywhere  
+> **Pinch-to-Move** ── Hold pinch for 800ms with hysteresis drag stability to pick up, drag, and reposition strokes anywhere  
 > **Canvas Guides** ── Switch between Blank, Lined, Grid, and Dotted backgrounds with isolated Undo/Redo history  
 
 ### 🧊 Build Space · *3D Spatial Voxel Studio*
@@ -73,8 +81,8 @@ AirForge uses an intuitive 5-gesture recognition engine designed for zero false 
 
 | Gesture | How to Perform | What It Does |
 | :---: | :--- | :--- |
-| **☝️ Point** | Index extended, middle finger curled | **Draw** neon curves & trace shape guides *(Ink Space)* |
-| **🤏 Pinch** | Thumb & index fingertips touching | **Preview** 3D voxel *(Build)* • **Hold 1s** to grab & move stroke *(Ink)* |
+| **☝️ Point** | Index extended, middle finger curled | **Draw** neon cursive & trace shape guides *(Ink Space)* |
+| **🤏 Pinch** | Thumb & index fingertips touching | **Preview** 3D voxel *(Build)* • **Hold 800ms** to grab & move stroke *(Ink)* |
 | **✋ Open Palm** | 4+ fingers spread open | **Commit** voxel • **Release** held stroke • **Stop** drawing |
 | **🤲 Two Palms** | Both hands open in camera view | **Orbit** 3D camera 360° around scene origin *(Build Space)* |
 | **🖱️ Scroll Wheel** | Mouse wheel vertical scroll | **Zoom** in / out smoothly *(Build Space)* |
@@ -89,13 +97,13 @@ The following diagram illustrates the complete, deterministic pipeline from raw 
 ```mermaid
 flowchart TD
     subgraph S1 ["1. OPTICAL ACQUISITION"]
-        Cam["📹 Webcam Video Stream<br/>(60 FPS • WebRTC / getUserMedia)"]
+        Cam["📹 Webcam Video Stream<br/>(60 FPS • Non-Intrusive Permission & Retry)"]
     end
 
     subgraph S2 ["2. COMPUTER VISION & GEOMETRY"]
         MP["🤖 MediaPipe Hands ML Model<br/>(21 3D Spatial Keypoints)"]
         Mirror["🪞 Coordinate Transformation<br/>x' = 1 - normX (Mirror Parity)"]
-        Smooth["📉 Temporal Coordinate Smoothing<br/>Moving Average Window (N=3)"]
+        Smooth["📉 Cursive Stabilizer & Jitter Gate<br/>Exponential Moving Average (N=3)"]
     end
 
     subgraph S3 ["3. GESTURE RECOGNITION & STATE"]
@@ -104,7 +112,7 @@ flowchart TD
         PinchPose["🤏 Pinch<br/>(dist &lt; 0.08)"]
         PalmPose["✋ Open Palm<br/>(4+ fingers open)"]
         DualPose["🤲 Dual Palms<br/>(Both hands present)"]
-        HoldTimer["⏱️ 1.0s Hold-to-Select Machine"]
+        HoldTimer["⏱️ 800ms Hold-to-Select Machine<br/>(Hysteresis Drag Guard)"]
         Debounce["⚡ 600ms Voxel Debounce Guard"]
     end
 
@@ -113,9 +121,11 @@ flowchart TD
     end
 
     subgraph S5A ["5A. ✍️ INK SPACE (2D CANVAS)"]
-        InkDraw["Quadratic Bezier Curve Interpolator"]
+        InkDraw["Catmull-Rom Cubic Bezier Spline Interpolator"]
+        CalliEngine["Calligraphic Cursive Engine<br/>(Directional Weight & Taper)"]
+        TailTrimmer["Exit-Tail Trimmer & Curvature Refinement"]
         Shapes["Parametric Geometry (Line, Circle, Rect)"]
-        GlowPass["Dual-Layer Neon Glow Renderer<br/>(Sharp Core + Radial Aura)"]
+        GlowPass["3-Layer Neon Glow Renderer<br/>(Aura Glow + Weighted Tube + White Core)"]
         InkHistory["Symmetrical Undo / Redo History Stacks"]
     end
 
@@ -153,7 +163,8 @@ flowchart TD
     Router -- "Active Mode: Ink" --> S5A
     Router -- "Active Mode: Build" --> S5B
 
-    S5A --> InkDraw & Shapes --> GlowPass --> GlassUI
+    S5A --> InkDraw --> CalliEngine --> TailTrimmer --> GlowPass --> GlassUI
+    Shapes --> GlowPass
     InkHistory -.-> InkDraw
 
     S5B --> Raycaster --> GridSnap --> GhostMesh --> GlassUI
@@ -170,7 +181,7 @@ flowchart TD
 
     class Cam,MP,Mirror,Smooth stage;
     class Detector,PointPose,PinchPose,PalmPose,DualPose,HoldTimer,Debounce,Router logic;
-    class InkDraw,Shapes,GlowPass,InkHistory engine2d;
+    class InkDraw,CalliEngine,TailTrimmer,Shapes,GlowPass,InkHistory engine2d;
     class Raycaster,GridSnap,GhostMesh,OrbitControl,BuildHistory engine3d;
     class GlassUI,Export output;
 ```
@@ -235,17 +246,17 @@ airforge/
 ├── README.md                   # Project documentation & interaction guides
 └── src/
     ├── main.js                 # Core loop, MediaPipe results hook & mode coordinator
-    ├── camera.js               # Camera stream acquisition & initialization
+    ├── camera.js               # Camera stream acquisition & non-intrusive error fallback
     ├── constants.js            # Neon palettes, landmark IDs & gesture thresholds
     ├── gestures/
     │   ├── detector.js         # 5-gesture classifier (Point, Pinch, Palm, Idle)
     │   └── landmarks.js        # Vector calculations, Euclidean distance & pinch detection
     ├── ink/
-    │   ├── inkCanvas.js        # 2D Canvas manager, coordinate mapping & 2× PNG export
-    │   ├── strokes.js          # Stroke data structure with clean Undo/Redo stacks
-    │   ├── neon.js             # Dual-layer neon glow renderer (blur aura + sharp core)
+    │   ├── inkCanvas.js        # 2D Canvas manager, cursive stabilizer & 2× PNG export
+    │   ├── strokes.js          # Stroke data structure, exit-tail trimmer & curvature refinement
+    │   ├── neon.js             # 3-layer calligraphic neon renderer (aura, weighted tube, white core)
     │   ├── shapes.js           # Line, Circle, and 4-corner Rectangle parametric math
-    │   ├── gestureHandler.js   # 2D gesture state machine (Draw, 1s Hold Select, Drag)
+    │   ├── gestureHandler.js   # 2D gesture state machine (Point Draw, 800ms Hold Select, Drag)
     │   └── background.js       # Background templates (Blank, Lined, Grid, Dotted)
     ├── build/
     │   ├── buildScene.js       # Three.js setup, top-down isometric view & screenshot

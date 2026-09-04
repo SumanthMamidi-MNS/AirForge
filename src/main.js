@@ -364,15 +364,33 @@ async function init() {
     console.log("✅ Render loop started");
   } catch (err) {
     console.error("❌ Init failed:", err);
-    loadingOverlay.innerHTML = `
-      <div style="color: #ff4444; font-size: 18px; text-align: center; padding: 20px; max-width: 500px;">
-        ❌ Failed to start<br>
-        <span style="font-size: 14px; color: #ff8888;">
-          ${err.message}<br><br>
-          Check console (F12) for details.
-        </span>
-      </div>
-    `;
+
+    // Hide the loading overlay — never block the workspace with a central error box!
+    loadingOverlay.classList.add("hidden");
+    setTimeout(() => {
+      if (loadingOverlay.parentNode) loadingOverlay.remove();
+    }, 600);
+
+    const isDeviceInUse =
+      err.name === "NotReadableError" ||
+      (err.message && err.message.toLowerCase().includes("in use"));
+
+    const msg = isDeviceInUse
+      ? "📷 Camera is busy in another app (close Chrome/Teams) — Click to Retry"
+      : "📷 Camera access needed — allow permission in address bar (Click to Retry)";
+
+    statusBar.setMessage(msg, true);
+    statusBar.element.style.cursor = "pointer";
+    statusBar.element.title = "Click to retry camera connection";
+
+    statusBar.element.onclick = () => {
+      statusBar.setMessage("⏳ Connecting to camera...", false);
+      statusBar.element.onclick = null;
+      init();
+    };
+
+    // Keep render loop going so the canvas and UI stay live
+    requestAnimationFrame(render);
   }
 }
 

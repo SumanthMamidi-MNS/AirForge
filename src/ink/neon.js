@@ -10,35 +10,88 @@
  * @param {Object} stroke
  */
 function drawPath(ctx, stroke) {
-  ctx.beginPath();
-  ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+  const pts = stroke.points;
+  if (!pts || pts.length === 0) return;
 
-  if (stroke.isShape || stroke.points.length <= 2) {
-    // Straight lines — shapes need crisp corners, not bezier curves
-    for (let i = 1; i < stroke.points.length; i++) {
-      ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+
+  if (stroke.isShape || pts.length <= 2) {
+    // Straight lines for geometric shapes or 2-point stubs
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineTo(pts[i].x, pts[i].y);
     }
-  } else {
-    // Smooth quadratic curves for freehand strokes
-    for (let i = 1; i < stroke.points.length - 1; i++) {
-      const xc = (stroke.points[i].x + stroke.points[i + 1].x) / 2;
-      const yc = (stroke.points[i].y + stroke.points[i + 1].y) / 2;
-      ctx.quadraticCurveTo(stroke.points[i].x, stroke.points[i].y, xc, yc);
-    }
-    const last = stroke.points[stroke.points.length - 1];
-    ctx.lineTo(last.x, last.y);
+    return;
+  }
+
+  // Smooth Catmull-Rom spline converted to cubic Bezier curves.
+  // Produces continuous, organic curvature without sharp elbow spikes.
+  const n = pts.length;
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = i > 0 ? pts[i - 1] : pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = i < n - 2 ? pts[i + 2] : p2;
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
   }
 }
 
 /**
- * Draw a neon stroke with glow aura + white core.
+ * Calculate dynamic calligraphic line weights along the stroke.
+ * Weights downstrokes, lightens upstrokes/ligatures, and tapers endpoints.
+ * @param {Array} pts - [{x, y}]
+ * @param {number} baseSize - stroke base width
+ * @returns {Float32Array}
+ */
+function computeCalligraphicWidths(pts, baseSize) {
+  const n = pts.length;
+  const widths = new Float32Array(n);
+
+  for (let i = 0; i < n; i++) {
+    let dx, dy;
+    if (i === 0) {
+      dx = pts[1].x - pts[0].x;
+      dy = pts[1].y - pts[0].y;
+    } else if (i === n - 1) {
+      dx = pts[n - 1].x - pts[n - 2].x;
+      dy = pts[n - 1].y - pts[n - 2].y;
+    } else {
+      dx = pts[i + 1].x - pts[i - 1].x;
+      dy = pts[i + 1].y - pts[i - 1].y;
+    }
+
+    const angle = Math.atan2(dy, dx);
+    // Calligraphic nib angle (~45 deg) gives classic penmanship weight:
+    // Downward & down-right strokes are fuller; ascending loops & cross strokes are slender.
+    const nibAngle = Math.PI / 4;
+    const calliWeight = 0.85 + 0.35 * Math.sin(angle + nibAngle);
+
+    // Smooth entry and exit feathering
+    const tIn = Math.min(1.0, (i + 0.6) / 3.2);
+    const tOut = Math.min(1.0, (n - 1 - i + 0.6) / 3.8);
+    const taper = Math.max(0.28, tIn * tOut);
+
+    widths[i] = Math.max(1.5, baseSize * calliWeight * taper);
+  }
+  return widths;
+}
+
+/**
+ * Draw a neon stroke with glow aura + calligraphic cursive core.
  * @param {CanvasRenderingContext2D} ctx
  * @param {Object} stroke - { points, color, size, isShape }
  */
 export function drawNeonStroke(ctx, stroke) {
-  if (stroke.points.length < 2) return;
+  const pts = stroke.points;
+  if (!pts || pts.length < 2) return;
 
-  const { color, size } = stroke;
+  const { color, size, isShape } = stroke;
 
   // Layer 1: Wide blurry glow (the neon aura)
   ctx.save();
@@ -50,23 +103,78 @@ export function drawNeonStroke(ctx, stroke) {
   ctx.lineJoin = "round";
   drawPath(ctx, stroke);
   ctx.stroke();
-  // Explicitly reset shadow so it doesn't bleed into next save/restore cycle
   ctx.shadowBlur = 0;
   ctx.shadowColor = "transparent";
   ctx.restore();
 
-  // Layer 2: Thin bright white core
+  // For shapes or very short stubs, render uniform core
+  if (isShape || pts.length <= 2) {
+    ctx.save();
+    ctx.shadowColor = "rgba(255,255,255,0.6)";
+    ctx.shadowBlur = size * 0.5;
+    ctx.strokeStyle = "rgba(255,255,255,0.9)";
+    ctx.lineWidth = Math.max(1, size * 0.35);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    drawPath(ctx, stroke);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = "transparent";
+    ctx.restore();
+    return;
+  }
+
+  // Cursive Handwriting: Render calligraphic tube and specular core
+  const n = pts.length;
+  const widths = computeCalligraphicWidths(pts, size);
+
+  // Precalculate cubic Bezier curve control points
+  const segments = [];
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = i > 0 ? pts[i - 1] : pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = i < n - 2 ? pts[i + 2] : p2;
+    segments.push({
+      p1,
+      p2,
+      cp1x: p1.x + (p2.x - p0.x) / 6,
+      cp1y: p1.y + (p2.y - p0.y) / 6,
+      cp2x: p2.x - (p3.x - p1.x) / 6,
+      cp2y: p2.y - (p3.y - p1.y) / 6,
+      w: (widths[i] + widths[i + 1]) * 0.5,
+    });
+  }
+
+  // Layer 2: Vibrant Colored Ink Body with Calligraphic Weight
   ctx.save();
-  ctx.shadowColor = "rgba(255,255,255,0.6)";
-  ctx.shadowBlur = size * 0.5;
-  ctx.strokeStyle = "rgba(255,255,255,0.9)";
-  ctx.lineWidth = Math.max(1, size * 0.35);
+  ctx.strokeStyle = color;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  drawPath(ctx, stroke);
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  ctx.shadowColor = "transparent";
+  ctx.globalAlpha = 0.95;
+  for (let i = 0; i < segments.length; i++) {
+    const s = segments[i];
+    ctx.lineWidth = s.w;
+    ctx.beginPath();
+    ctx.moveTo(s.p1.x, s.p1.y);
+    ctx.bezierCurveTo(s.cp1x, s.cp1y, s.cp2x, s.cp2y, s.p2.x, s.p2.y);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Layer 3: Brilliant White Specular Core
+  ctx.save();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.92)";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  for (let i = 0; i < segments.length; i++) {
+    const s = segments[i];
+    ctx.lineWidth = Math.max(1, s.w * 0.35);
+    ctx.beginPath();
+    ctx.moveTo(s.p1.x, s.p1.y);
+    ctx.bezierCurveTo(s.cp1x, s.cp1y, s.cp2x, s.cp2y, s.p2.x, s.p2.y);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 

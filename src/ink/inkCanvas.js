@@ -69,16 +69,21 @@ class InkCanvas {
     }
 
     const dist = Math.hypot(x - this._lastPoint.x, y - this._lastPoint.y);
-    if (dist < 2) return; // ignore micro-tremor
+    if (dist < 3) return; // ignore micro-jitter
+    if (dist > 250) return; // ignore tracking teleport glitches
 
-    // Dynamic smoothing: rapid handwriting curves track with zero lag (alpha up to 0.85),
-    // while slow micro-movements filter out camera sensor noise (alpha ~0.45).
-    const alpha = Math.min(0.85, Math.max(0.45, dist / 24));
+    // Cursive stabilizer: smooths hand tremor while following the finger closely
+    const alpha = Math.min(0.70, Math.max(0.40, dist / 30));
     const sx = this._lastPoint.x + alpha * (x - this._lastPoint.x);
     const sy = this._lastPoint.y + alpha * (y - this._lastPoint.y);
 
     strokeManager.addPoint(sx, sy);
     this._lastPoint = { x: sx, y: sy };
+  }
+
+  finishDrawing() {
+    strokeManager.finishCurrentStroke();
+    this._lastPoint = null;
   }
 
   findStrokeAt(normX, normY, threshold = 30) {

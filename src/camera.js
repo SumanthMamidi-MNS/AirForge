@@ -12,14 +12,23 @@ import { WEBCAM } from "./constants.js";
 export async function startCamera() {
   const video = document.getElementById("webcam-video");
 
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: {
-      width: { ideal: WEBCAM.WIDTH },
-      height: { ideal: WEBCAM.HEIGHT },
-      facingMode: "user",
-    },
-    audio: false,
-  });
+  let stream = null;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: { ideal: WEBCAM.WIDTH },
+        height: { ideal: WEBCAM.HEIGHT },
+        facingMode: "user",
+      },
+      audio: false,
+    });
+  } catch (err) {
+    console.warn("Retrying camera with basic video constraints:", err);
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: false,
+    });
+  }
 
   video.srcObject = stream;
 

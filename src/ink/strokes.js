@@ -73,6 +73,72 @@ class StrokeManager {
     this.strokes[this.strokes.length - 1].points.push({ x, y });
   }
 
+  getCurrentStroke() {
+    if (this.strokes.length === 0) return null;
+    return this.strokes[this.strokes.length - 1];
+  }
+
+  /**
+   * Trim abrupt exit flings (e.g. dropping hand after writing a word).
+   * Detects abnormal acceleration on the final 1-2 points.
+   */
+  trimExitTail(stroke) {
+    if (!stroke || stroke.isShape || !stroke.points || stroke.points.length < 5) return;
+    const pts = stroke.points;
+    const dists = [];
+    for (let i = 1; i < pts.length; i++) {
+      dists.push(Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+    }
+
+    // Median step distance of the handwriting body (excluding the final 2 points)
+    const sample = dists.slice(0, Math.max(1, dists.length - 2)).sort((a, b) => a - b);
+    const medianDist = sample[Math.floor(sample.length / 2)] || 10;
+    const threshold = Math.max(30, medianDist * 2.5);
+
+    // Pop runaway hand-drop tail points
+    if (dists[dists.length - 1] > threshold) {
+      pts.pop();
+      if (pts.length >= 4) {
+        const secondLastDist = Math.hypot(
+          pts[pts.length - 1].x - pts[pts.length - 2].x,
+          pts[pts.length - 1].y - pts[pts.length - 2].y
+        );
+        if (secondLastDist > threshold) {
+          pts.pop();
+        }
+      }
+    }
+  }
+
+  /**
+   * Gentle Laplacian/Gaussian filter to eliminate webcam micro-jitter and smooth cursive loops.
+   */
+  refineStrokeCurvature(stroke) {
+    if (!stroke || stroke.isShape || !stroke.points || stroke.points.length < 4) return;
+    const pts = stroke.points;
+    const n = pts.length;
+
+    const smoothed = [{ x: pts[0].x, y: pts[0].y }];
+    for (let i = 1; i < n - 1; i++) {
+      smoothed.push({
+        x: 0.25 * pts[i - 1].x + 0.5 * pts[i].x + 0.25 * pts[i + 1].x,
+        y: 0.25 * pts[i - 1].y + 0.5 * pts[i].y + 0.25 * pts[i + 1].y,
+      });
+    }
+    smoothed.push({ x: pts[n - 1].x, y: pts[n - 1].y });
+    stroke.points = smoothed;
+  }
+
+  /**
+   * Finalize the active stroke: clean exit tail and smooth cursive curvature.
+   */
+  finishCurrentStroke() {
+    const stroke = this.getCurrentStroke();
+    if (!stroke) return;
+    this.trimExitTail(stroke);
+    this.refineStrokeCurvature(stroke);
+  }
+
   removeStroke(id) {
     const idx = this.strokes.findIndex((s) => s.id === id);
     if (idx === -1) return false;

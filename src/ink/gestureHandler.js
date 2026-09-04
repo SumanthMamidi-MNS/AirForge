@@ -21,7 +21,7 @@ const State = {
 
 const PINCH_SELECT_MS = 800; // Snappy 800ms hold to select
 const DRAW_GRACE_FRAMES = 7;   // Tolerate up to ~200ms tracking micro-drops without breaking strokes
-const PINCH_GRACE_FRAMES = 7;  // Tolerate tracking flicker without dropping selected strokes
+const PINCH_GRACE_FRAMES = 14; // Tolerate tracking flicker without dropping selected strokes
 
 class GestureHandler {
   constructor() {
@@ -95,14 +95,16 @@ class GestureHandler {
       const mode = shapeHandler.getMode();
       if (mode !== ShapeMode.FREE) {
         shapeHandler.finalizeShape(inkCanvas.currentColor, inkCanvas.currentSize);
+      } else {
+        inkCanvas.finishDrawing();
       }
       this.state = State.IDLE;
       this.drawGraceCount = 0;
       return { action: "idle", message: "✋ Drawing stopped" };
     }
 
-    // Active pointing: continue stroke
-    if (gesture.type === "POINT") {
+    // Active pointing: continue stroke if POINT or if index finger is extended
+    if (gesture.type === "POINT" || (gesture.fingers && gesture.fingers.index && gesture.type !== "OPEN_PALM")) {
       this.drawGraceCount = 0;
       const mode = shapeHandler.getMode();
       if (mode === ShapeMode.FREE) {
@@ -126,6 +128,8 @@ class GestureHandler {
     const mode = shapeHandler.getMode();
     if (mode !== ShapeMode.FREE) {
       shapeHandler.finalizeShape(inkCanvas.currentColor, inkCanvas.currentSize);
+    } else {
+      inkCanvas.finishDrawing();
     }
     this.state = State.IDLE;
     this.drawGraceCount = 0;
@@ -195,7 +199,7 @@ class GestureHandler {
       return { action: "idle", message: "✅ Stroke placed" };
     }
 
-    if (gesture.type === "PINCH" || gesture.type === "PINCH_INDEX") {
+    if (gesture.type === "PINCH" || gesture.type === "PINCH_INDEX" || gesture.isPinching) {
       this.pinchGraceCount = 0;
       if (!gesture.pinchMidpoint) return { action: "moving", message: "🤏 Moving..." };
       const dx = gesture.pinchMidpoint.x - this.lastPinchX;
@@ -220,6 +224,14 @@ class GestureHandler {
   }
 
   reset() {
+    if (this.state === State.DRAWING) {
+      const mode = shapeHandler.getMode();
+      if (mode !== ShapeMode.FREE) {
+        shapeHandler.finalizeShape(inkCanvas.currentColor, inkCanvas.currentSize);
+      } else {
+        inkCanvas.finishDrawing();
+      }
+    }
     inkCanvas.setSelection(null);
     inkCanvas.setHighlight(null);
     this.state = State.IDLE;
