@@ -38,17 +38,11 @@ Most spatial computing experiences today require **$500–$3,500 VR headsets** o
 > **⚡ Zero-Install Spatial Engine**  
 > Runs natively in modern browsers via WebRTC & WebGL. Zero external sensors, drivers, or software installation required.
 >
-> **✍️ Calligraphic Cursive Engine & Smart Tail-Trimming**  
-> Direction-aware line weighting and automated exit-fling pruning turn natural hand air-writing into fluid, elegant neon cursive without flyaway trailing lines.
+> **✍️ Calligraphic Cursive Engine**  
+> Direction-aware line weighting and automated exit-fling pruning turn natural hand air-writing into fluid, elegant neon cursive.
 >
 > **🪞 Mirror Parity Calibration**  
 > Mathematical screen-space inversion ($x' = 1 - x$) ensures physical hand motion matches on-screen interaction with zero cognitive delay.
->
-> **📷 Seamless Permission Flow**  
-> Non-intrusive status-bar permission prompts and click-to-retry handling keep the workspace fully open without jarring central error takeovers.
->
-> **🌌 Neon Glassmorphism Shell**  
-> Deep obsidian `#020617` workspace with contextual state-driven neon glow feedback and an electric cyan-white (`#7df9ff`) precision slider.
 >
 > **🛡️ Deterministic Input Guard**  
 > Symmetrical undo/redo stacks, hysteresis pinch dragging & a 600ms debounce guard eliminate phantom inputs and accidental voxel duplication.
@@ -60,11 +54,9 @@ Most spatial computing experiences today require **$500–$3,500 VR headsets** o
 
 ### ✍️ Ink Space · *2D Precision Sketching*
 > **Point & Draw** ── Trace fluid neon cursive with Catmull-Rom cubic Bézier splines and directional calligraphic line weights  
-> **Curvature Refinement** ── Automatic post-stroke Laplacian jitter filtration smooths handwriting loops and signatures  
-> **Exit-Tail Trimming** ── Intelligent velocity monitoring prunes accidental flyaway lines when dropping your hand  
+> **Smart Tail-Trimming** ── Intelligent velocity monitoring prunes accidental flyaway lines and smooths handwriting loops  
 > **Parametric Shapes** ── Seamlessly create straight lines, perfect circles, and 4-corner rectangles  
 > **Pinch-to-Move** ── Hold pinch for 800ms with hysteresis drag stability to pick up, drag, and reposition strokes anywhere  
-> **Canvas Guides** ── Switch between Blank, Lined, Grid, and Dotted backgrounds with isolated Undo/Redo history  
 
 ### 🧊 Build Space · *3D Spatial Voxel Studio*
 > **Top-Down Start** ── Launches straight into an isometric ground view for immediate spatial orientation  
